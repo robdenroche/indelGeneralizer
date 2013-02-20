@@ -31,9 +31,9 @@ The indel generalizer is a perl script capable of determining all the possible a
 
 Installation and References
 ---------------------------
-The indelGeneralizer requires a bioperl module in order to index and pull bases from your fasta reference. Bioperl is available here: www.bioperl.org
+The indelGeneralizer requires a bioperl module in order to index and pull bases from your fasta reference. Bioperl is available here: www.bioperl.org.
 
-Naturally you will also require a fasta reference, many of which can be obtained from UCSC here: http://hgdownload.soe.ucsc.edu/downloads.html .  Due to the current implementation, your fasta reference must have one file per chromosome all placed in the same directory. The format of your chromosome names in your input must match the names of your files (if you use chr12, you'll need a chr12.fa; for 12 you'll need 12.fa).
+Naturally you will also require a fasta reference, many of which can be obtained from UCSC here: http://hgdownload.soe.ucsc.edu/downloads.html.  Due to the current implementation, your fasta reference must have one file per chromosome all placed in the same directory. The format of your chromosome names in your input must match the names of your files (if you use chr12, you'll need a chr12.fa; for 12 you'll need 12.fa).
 
 Once you have bioperl and a proper fasta reference you should be able to run the script as is! 
 
@@ -43,30 +43,39 @@ NOTE: The first time bioperl accesses a fasta file it will create an index file 
 Usage
 -----
 Usage is ./indelGeneralizer.pl [-i INDEL -c CHROM -p POS || -v INPUT.VCF] -f /PATH/TO/FASTA/ [options]
- 
+
+
 Options are as follows:
+
 **-f /PATH/TO/FASTA/** is the path to your fasta reference, which is split into separate chromosome files.
 
 **-a ANCHOR_POS** (as left, left-1, right, right+1). Optional, default is left-1.  Controls which position is reported for an indel.  For insertions, left and left-1 (or right and right+1) behave the same, reporting the position of the base of the left of the insertion point.  For deletions, left is the leftmost deleted base, and left-1 is the anchor base to the left of the deletion event.  Right is the rightmost base, and right+1 is the base after the deletion.
 
-**-b ANCHOR_BASE** (as left, right, off).  Optional, default is left.  Toggles whether and where to include the anchor base.  To avoid confusion, \"-a left-1 -b left\" or \"-a left -b off\" are recommended.  Using right is likely to confuse.
+**-b ANCHOR_BASE** (as left, right, off).  Optional, default is left.  Toggles whether and where to include the anchor base.  To avoid confusion, "-a left-1 -b left" or "-a left -b off" are recommended.  Using right is likely to confuse.
 
 **-s CHUNK_SIZE**  Optional, default is 5 (used as 10^CHUNK_SIZE to set the chunk size in bases).  Controls how many sequential bases are read from the fasta reference at a time (as I/O reads are costly).  Could be tuned lower if making multiple calls to interactive mode or if your VCF is unsorted, or higher if your I/O is slow and you have memory to spare.
 
 **-h** displays this usage message.
- 		
- Interactive mode options:
- 	**-i INDEL** (as +ACG or -T).  Enables interactive mode and specifies the inserted (+) or deleted (-) bases.
- 	**-c CHROM** (as chr2 or 2 - whatever matches your fasta files).  Enables interactive mode and specifies the chromosome
- 		where the indel occurs.
- 	**-p POS** (as 12345).  Enables interactive mode and specifies the position of the anchor base to the left to the indel event.
- 	**-m ALIGN_MODE** (as left, right, full or all).  Optional, default is left.  Specifies the output of interactive mode.
- 	
- VCF mode options:
- 	**-v INPUT.VCF** enables VCF mode and specifies the VCF file to generalize.
- 	**-m ALIGN_MODE** (as left, right).  Optional, default is left.  Specifies whether to generalize indels to their leftmost or rightmost position.
-	**-o** Preserves existing VCF order.  By default (assuming the input is sorted) indels may be assigned new anchor positions and will be resorted accordingly to generate
-		sorted output.  -o disables this sort check and the output will be in the same order as the input even if this violates the sort.
+
+
+Interactive mode options:
+
+**-i INDEL** (as +ACG or -T).  Enables interactive mode and specifies the inserted (+) or deleted (-) bases.
+
+**-c CHROM** (as chr2 or 2 - whatever matches your fasta files).  Enables interactive mode and specifies the chromosome where the indel occurs.
+
+**-p POS** (as 12345).  Enables interactive mode and specifies the position of the anchor base to the left to the indel event.
+
+**-m ALIGN_MODE** (as left, right, full or all).  Optional, default is left.  Specifies the output of interactive mode.
+
+
+VCF mode options:
+
+**-v INPUT.VCF** enables VCF mode and specifies the VCF file to generalize.
+
+**-m ALIGN_MODE** (as left, right).  Optional, default is left.  Specifies whether to generalize indels to their leftmost or rightmost position.
+
+**-o** Preserves existing VCF order.  By default (assuming the input is sorted) indels may be assigned new anchor positions and will be resorted accordingly to generate sorted output.  -o disables this sort check and the output will be in the same order as the input even if this violates the sort.
 
 
 Examples
