@@ -39,6 +39,8 @@ my $bufferChunkPower = 5;
 my $outputVcfStats = 1;
 my $doSort = 1;
 
+my $sortingChunkSize = 10000;		# this is hardcoded in the doSortedOutput subroutine - to be fixed
+
 sub usage
 {
 	warn "
@@ -299,8 +301,8 @@ if ($interactiveMode == 1)
 			print $outputLine;
 		}
 	}
-	elsif ($alignMode eq "full")
-	{
+	elsif ($alignMode eq "full"{
+	my $previousPos = 0;
 		my $refPad = 3;
 		doFullOutput($chr, $pos, $type, $candidatePos, $anchorMode, $anchorPos, \%referenceHash, \%fastaHandles);#
 	}
@@ -421,6 +423,11 @@ else		# process vcf file
 					{
 						$outputPos = $sortedPositions[0];
 						$outputIndel = $candidatePos->{$outputPos};
+
+						if (($pos - $outputPos) >= $sortedChunkSize)
+						{
+							warn "An indel was realigned so far left that it make have violated the sortedness of your vcf!\n";
+						}
 	
 						
 						$outputAnchor = getAnchorBase($chr, $outputPos, $indel, $anchorMode, \%referenceHash, \%fastaHandles);
