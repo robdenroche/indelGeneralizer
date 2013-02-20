@@ -2,22 +2,21 @@
 
 # Created by Rob Denroche on 2012-10-21
 # Copyright (C) 2012 The Ontario Institute for Cancer Research
-# 
+#
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
 # the Free Software Foundation; either version 3 of the License, or (at
-# 	your option) any later version.
-# 
+#      your option) any later version.
+#
 # This program is distributed in the hope that it will be useful, but
 # WITHOUT ANY WARRANTY; without even the implied warranty of
 # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
 # General Public License for more details.
-# 
+#
 # You should have received a copy of the GNU General Public License
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston,
 # MA 02110-1301, USA.
-
 
 
 use strict;
@@ -234,8 +233,7 @@ my $candidatePos;
 my $chunkSize = 10 ** $chunkPower;
 my %referenceHash = ("chunkSize" => $chunkSize);		# chunk size is how many bases will be pulled from the fasta reference at a time
 														# referenceHash will also contain the bases in the form $hash{chromosome}{chunk}{position}
-my %unsortedVariantBuffer;		# $unsortedVariantBuffer{$chunk}{$pos} = $line
-
+my %unsortedOutputChunks;		# $unsortedOutputChunks{$chr}{$chunk}{$line}
 
 # counts for vcf stat output
 my $snpCount = 0;
@@ -266,24 +264,28 @@ if ($interactiveMode == 1)
 	my $outputPos;
 	my $outputIndel;
 	my $outputAnchor;
+
+	my $outputLine;
 	
 	if ($alignMode eq "left")
 	{
 		$outputPos = $sortedPositions[0];
 		$outputIndel = $candidatePos->{$outputPos};
 		
-		$outputAnchor = getAnchorBase($chr, $outputPos, $anchorMode, \%referenceHash, \%fastaHandles);
+		$outputAnchor = getAnchorBase($chr, $outputPos, $indel, $anchorMode, \%referenceHash, \%fastaHandles);
 		$outputPos = adjustAnchorPos($outputPos, $anchorPos, $type, $outputIndel);
-		printIndel($chr, $outputPos, ".", $outputAnchor, $anchorMode, $type, $outputIndel, "\n", "\t");
+		$outputLine = printIndel($chr, $outputPos, ".", $outputAnchor, $anchorMode, $type, $outputIndel, "\n", "\t");
+		print $outputLine;
 	}
 	elsif ($alignMode eq "right")
 	{
 		$outputPos = $sortedPositions[$#sortedPositions];
 		$outputIndel = $candidatePos->{$outputPos};
 
-		$outputAnchor = getAnchorBase($chr, $outputPos, $anchorMode, \%referenceHash, \%fastaHandles);
+		$outputAnchor = getAnchorBase($chr, $outputPos, $indel, $anchorMode, \%referenceHash, \%fastaHandles);
 		$outputPos = adjustAnchorPos($outputPos, $anchorPos, $type, $outputIndel);
-		printIndel($chr, $outputPos, ".", $outputAnchor, $anchorMode, $type, $outputIndel, "\n", "\t");
+		$outputLine = printIndel($chr, $outputPos, ".", $outputAnchor, $anchorMode, $type, $outputIndel, "\n", "\t");
+		print $outputLine;
 	}
 	elsif ($alignMode eq "all")
 	{
@@ -291,9 +293,10 @@ if ($interactiveMode == 1)
 		{
 			$outputIndel = $candidatePos->{$outputPos};
 			
-			$outputAnchor = getAnchorBase($chr, $outputPos, $anchorMode, \%referenceHash, \%fastaHandles);
+			$outputAnchor = getAnchorBase($chr, $outputPos, $indel, $anchorMode, \%referenceHash, \%fastaHandles);
 			$outputPos = adjustAnchorPos($outputPos, $anchorPos, $type, $outputIndel);
-			printIndel($chr, $outputPos, ".", $outputAnchor, $anchorMode, $type, $outputIndel, "\n", "\t");			
+			$outputLine = printIndel($chr, $outputPos, ".", $outputAnchor, $anchorMode, $type, $outputIndel, "\n", "\t");			
+			print $outputLine;
 		}
 	}
 	elsif ($alignMode eq "full")
@@ -338,6 +341,7 @@ else		# process vcf file
 				}
 				else
 				{
+					doSortedOutput($chr, $pos, $line, \%unsortedOutputChunks);
 				}
 			}
 			elsif (($ref =~ /,/) or ($var =~ /,/))
@@ -346,6 +350,10 @@ else		# process vcf file
 				if ($doSort == 0)
 				{
 					print $line . "\n";
+				}
+				else
+				{
+					doSortedOutput($chr, $pos, $line, \%unsortedOutputChunks);
 				}
 			}
 			else
@@ -375,6 +383,10 @@ else		# process vcf file
 					{
 						print $line . "\n";
 					}
+					else
+					{
+						doSortedOutput($chr, $pos, $line, \%unsortedOutputChunks);
+					}
 					$noMatchCount++;
 				}
 				else
@@ -383,6 +395,7 @@ else		# process vcf file
 					my $outputPos;
 					my $outputIndel;
 					my $outputAnchor;
+					my $outputLine;
 	
 					if ((scalar keys %$candidatePos) > 1)
 					{
@@ -410,11 +423,17 @@ else		# process vcf file
 						$outputIndel = $candidatePos->{$outputPos};
 	
 						
-						$outputAnchor = getAnchorBase($chr, $outputPos, $anchorMode, \%referenceHash, \%fastaHandles);
+						$outputAnchor = getAnchorBase($chr, $outputPos, $indel, $anchorMode, \%referenceHash, \%fastaHandles);
 						$outputPos = adjustAnchorPos($outputPos, $anchorPos, $type, $outputIndel);
 						if ($doSort == 0)
 						{
-							printIndel($chr, $outputPos, $dbsnp, $outputAnchor, $anchorMode, $type, $outputIndel, "$restOfLine\n", "\t");
+							$outputLine = printIndel($chr, $outputPos, $dbsnp, $outputAnchor, $anchorMode, $type, $outputIndel, "$restOfLine\n", "\t");
+							print $outputLine;
+						}
+						else
+						{
+							$outputLine = printIndel($chr, $outputPos, $dbsnp, $outputAnchor, $anchorMode, $type, $outputIndel, "$restOfLine\n", "\t");
+							doSortedOutput($chr, $outputPos, $outputLine, \%unsortedOutputChunks);
 						}
 					}
 					elsif ($alignMode eq "right")
@@ -422,11 +441,17 @@ else		# process vcf file
 						$outputPos = $sortedPositions[$#sortedPositions];
 						$outputIndel = $candidatePos->{$outputPos};
 				
-						$outputAnchor = getAnchorBase($chr, $outputPos, $anchorMode, \%referenceHash, \%fastaHandles);
+						$outputAnchor = getAnchorBase($chr, $outputPos, $indel, $anchorMode, \%referenceHash, \%fastaHandles);
 						$outputPos = adjustAnchorPos($outputPos, $anchorPos, $type, $outputIndel);
 						if ($doSort == 0)
 						{
-							printIndel($chr, $outputPos, $dbsnp, $outputAnchor, $anchorMode, $type, $outputIndel, "$restOfLine\n", "\t");
+							$outputLine = printIndel($chr, $outputPos, $dbsnp, $outputAnchor, $anchorMode, $type, $outputIndel, "$restOfLine\n", "\t");
+							print $outputLine;
+						}
+						else
+						{
+							$outputLine = printIndel($chr, $outputPos, $dbsnp, $outputAnchor, $anchorMode, $type, $outputIndel, "$restOfLine\n", "\t");
+							doSortedOutput($chr, $outputPos, $outputLine, \%unsortedOutputChunks);
 						}
 					}
 				}
@@ -454,12 +479,13 @@ else		# process vcf file
 		}
 
 		warn "\n";
-		warn "# snps:        $snpCount\n";
-		warn "# insertions:  $insCount\n";
-		warn "# deletions:   $delCount\n";
-		warn "# bad dels:    $noMatchCount\n";
-		warn "# comma vars:  $commaCount\n";
+		warn "# snps:           $snpCount\n";
+		warn "# insertions:     $insCount\n";
+		warn "# deletions:      $delCount\n";
+		warn "# no match dels:  $noMatchCount\n";
+		warn "# comma vars:     $commaCount\n";
 		warn "\n";
+		warn "(the following is before generalization)\n";
 		warn "# ambiguous insertions:     $ambigCount{'+'}\n";
 		warn "# left aligned insertions:  $leftCount{'+'}\n";
 		warn "# right aligned insertions: $rightCount{'+'}\n";
@@ -474,13 +500,17 @@ else		# process vcf file
 }
 
 
+# getAnchorBase considers the position of the indel and current anchor mode in order to return the anchor base
+# input is the chromosome, position and content of the indel (in order to determine length for right-most anchor modes) as well as the reference and fasta handles
+# output is the anchor base which is returned
 sub getAnchorBase
 {
 	my $chr = $_[0];
 	my $pos = $_[1];
-	my $anchorMode = $_[2];
-	my $reference = $_[3];
-	my $fastaHandles = $_[4];
+	my $indel = $_[2];
+	my $anchorMode = $_[3];
+	my $reference = $_[4];
+	my $fastaHandles = $_[5];
 
 	my $outputAnchor;
 	
@@ -500,6 +530,10 @@ sub getAnchorBase
 	return $outputAnchor;
 }
 
+
+# adjustAnchorPos consideres the type of indel and current anchor mode in order to adjust the position of the indel
+# input is the position, current anchor position mode, indel type and indel context (in order to determine indel length for right-most anchors)
+# output is the adjusted anchor pos
 sub adjustAnchorPos
 {
 	my $pos = $_[0];
@@ -539,7 +573,10 @@ sub adjustAnchorPos
 	}
 }
 
-# printIndel($chr, $outputPos, ".", $anchorBase, $type, $outputIndel, "\n", $delim);
+# printIndel takes an indel and some meta data and formats the output line
+# input is the chromosome and position of the indel, any string for the id field (e.g. dbsnp), the anchor base and where to place it, the type of indel and its change
+# 	and finally the rest of the output line and the delimitor to use to separate the fields
+# output is the formatted string which is returned
 sub printIndel
 {
 	my $chr = $_[0];
@@ -573,15 +610,17 @@ sub printIndel
 
 	if ($type eq "+")	# insertion
 	{
-		print "$chr$delim$pos$delim$id$delim$insertionRef$delim$deletionRef$delim$line";
+		return "$chr$delim$pos$delim$id$delim$insertionRef$delim$deletionRef$delim$line";
 	}
 	else	# deletion
 	{
-		print "$chr$delim$pos$delim$id$delim$deletionRef$delim$insertionRef$delim$line";
+		return "$chr$delim$pos$delim$id$delim$deletionRef$delim$insertionRef$delim$line";
 	}
 }
 
-# doFullOutput($chr, $pos, $type, $candidatePos, $anchorMode, $anchorPos, \%referenceHash, \%fastaHandles);#
+# doFullOutput takes the indel of interest and a list of candidate positions and prints 'full mode' output to stdout
+# input is ($chr, $pos, $type, $candidatePos, $anchorMode, $anchorPos, \%referenceHash, \%fastaHandles)
+# outputs to stdout and doesn't return anything
 sub doFullOutput
 {
 	my $chr = $_[0];
@@ -598,6 +637,7 @@ sub doFullOutput
 	my $outputIndel;
 	my $outputAnchor;
 	my $fullIndelDisplay;
+	my $outputLine;
 
 	my @sortedPositions = sort { $a <=> $b } keys %$candidatePos;
 	my $indelLength = length($candidatePos->{$sortedPositions[0]});
@@ -685,9 +725,10 @@ sub doFullOutput
 				$fullIndelDisplay .= "$tabPad<-- (original deletion)";
 			}
 		}
-		$outputAnchor = getAnchorBase($chr, $outputPos, $anchorMode, \%referenceHash, \%fastaHandles);
+		$outputAnchor = getAnchorBase($chr, $outputPos, $indel, $anchorMode, \%referenceHash, \%fastaHandles);
 		$outputPos = adjustAnchorPos($outputPos, $anchorPos, $type, $outputIndel);
-		printIndel($chr, $outputPos, ".", $outputAnchor, $anchorMode, $type, $outputIndel, "$fullIndelDisplay\n", $tabPad);
+		$outputLine = printIndel($chr, $outputPos, ".", $outputAnchor, $anchorMode, $type, $outputIndel, "$fullIndelDisplay\n", $tabPad);
+		print $outputLine;
 	}
 
 	if ($type eq "-")
@@ -718,6 +759,73 @@ sub doFullOutput
 	print "\n";
 }
 
+# doSortedOutput takes a line that needs to be outputted and stores it in a hash which is broken up by chunks.  Once sufficiently far from a chunk (assuming sorted input)
+# 	the lines in the chunk are sorted and output to stdout.  It's possible (however unlikely) that an indel could be generalized to a position that is far enough away that
+# 	its chunk has already been outputted and freed from memory, in which case there is a warning that the output vcf is not sorted
+# input is the chromosome, position, output line and handle for the hash of unsorted output chunks
+# output is sorted chunks to stdout, doesn't return anything
+sub doSortedOutput
+{
+	my $chr = $_[0];
+	my $pos = $_[1];
+	my $line = $_[2];
+	my $unsortedOutputChunks = $_[3];
+
+	my $chunkSize = 10000;		# could adjust this up if indels are being generalized more than 10kb away from their reported positions (there is a warning for this)
+	my $currentChunk = int(($pos - 1) / $chunkSize) * $chunkSize + 1;
+
+	# add line to hash
+	$unsortedOutputChunks->{$chr}{$currentChunk}{$pos}{$line}++;
+
+	# check if we're on a new chromosome - sort and output old chromosomes
+	for my $refChr (keys %$unsortedOutputChunks)
+	{
+		if ($refChr ne $chr)
+		{
+			for my $refChunk (keys %{ $unsortedOutputChunks->{$refChr} })
+			{
+				printChunk($refChr, $refChunk, $unsortedOutputChunks);
+			}
+			delete $unsortedOutputChunks->{$refChr};
+		}
+	}
+
+	
+	# check if we're far enough away from existing chunks - sort and output chunks that are no longer needed
+	for my $chunkPos (keys %{ $unsortedOutputChunks->{$chr} })
+	{
+		if ($chunkPos < ($pos - (2 * $chunkSize)))
+		{
+			printChunk($chr, $chunkPos, $unsortedOutputChunks);
+			delete $unsortedOutputChunks->{$chr}{$chunkPos};
+		}
+
+	}
+
+	return;
+}
+
+# printChunk takes a chunk and a reference to the unsorted chunk hash as input, sorts the chunks by the position and prints them to stdout
+sub printChunk
+{
+	my $chr = $_[0];
+	my $chunk = $_[1];
+	my $unsortedOutputChunks = $_[2];
+
+	for my $pos (sort { $a <=> $b } keys %{ $unsortedOutputChunks->{$chr}{$chunk} })
+	{
+		for my $line (keys %{ $unsortedOutputChunks->{$chr}{$chunk}{$pos} })
+		{
+			for (my $i = 0; $i < $unsortedOutputChunks->{$chr}{$chunk}{$pos}{$line}; $i++)	# print multiple lines multiple times
+			{
+				print $line;
+			}
+		}
+	}
+	return;
+}
+
+
 # returns $_[0] spaces
 sub spaces
 {
@@ -731,8 +839,7 @@ sub spaces
 }
 
 
-# getBase returns the base at a specific position in the reference.  It will initialize fasta handles and 
-# 	pull new chunks of reference if necessary
+# getBase returns the base at a specific position in the reference.  It will initialize fasta handles and pull new chunks of reference if necessary
 # input is chromosome, position, reference hash and fasta handles
 # output is a single base (and the reference hash and fasta handles may be modified)
 sub getBase
@@ -883,16 +990,10 @@ sub findCandidatePositions
 			if ($candidateIndel eq $smallestInsertionSubunit)
 			{
 				$candidatePos{$searchPos} = $indel;
-	#		   $candidatePos{$searchPos - length($smallestInsertionSubunit)} = $indel;	 # can insert on either side of a repeated motif
-
-	#		   $lastFoundInsertion = $searchPos;
 			}
 			else
 			{
-	#		   if (($searchPos + $indelLength) < $lastFoundInsertion)
-	#		   {
-					$done = 1;
-	#		   }
+				$done = 1;
 			}
 		}
 		else	# deletion
@@ -934,14 +1035,10 @@ sub findCandidatePositions
 				$candidatePos{$searchPos} = $indel;
 				$candidatePos{$searchPos + length($smallestInsertionSubunit)} = $indel;     # can insert on either side of a repeated motif
 
-	#           $lastFoundInsertion = $searchPos;
 			}
 			else
 			{
-	#           if (($searchPos - $indelLength) >= $lastFoundInsertion)
-	#           {
-					$done = 1;
-	#           }
+				$done = 1;
 			}
 		}
 		else    # deletion
