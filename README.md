@@ -22,7 +22,8 @@ MA 02110-1301, USA.
 
 
 README
-Ambiguous indels are insertion or deletion events that can be reported as a variant in more than one position. Grab some abstract text...
+======
+The genomic position of an indel is ambiguous when the bases being inserted or deleted are in the context of a homopolymer or simple repeat.  Since indel variants are often reported as occuring at a specific genomic position, an ambiguous indel could be called correctly at multiple positions due to differences in pipelines or conventions, and then erroneously considered to be separate mutation events.
 
 The indel generalizer is a perl script capable of determining all the possible ambiguous alignments for a given indel and then generalizing the alignment to a user selected convention (the leftmost position in the reference, for example). It can be run in two modes: interactive mode where a single indel is supplied on the command line, or vcf mode where a vcf formatted file of variants can be processed, converting all ambiguous indels to a single convention.
 
@@ -30,7 +31,7 @@ The indel generalizer is a perl script capable of determining all the possible a
 INSTALLATION AND REFERENCES
 The indelGeneralizer requires a bioperl module in order to index and pull bases from your fasta reference. Bioperl is available here: www.bioperl.org
 
-Naturally you will also require a fasta reference, many of which can be found here: ucsc download? Due to the current implementation, your fasta reference must have one file per chromosome all placed in the same directory. The format of your chromosome names in your input must match the names of your files (if you use chr12, you'll need a chr12.fa; for 12 you'll need 12.fa).
+Naturally you will also require a fasta reference, many of which can be obtained from UCSC here: http://hgdownload.soe.ucsc.edu/downloads.html .  Due to the current implementation, your fasta reference must have one file per chromosome all placed in the same directory. The format of your chromosome names in your input must match the names of your files (if you use chr12, you'll need a chr12.fa; for 12 you'll need 12.fa).
 
 Once you have bioperl and a proper fasta reference you should be able to run the script as is! 
 
