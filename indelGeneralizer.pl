@@ -782,7 +782,7 @@ sub doSortedOutput
 	{
 		if ($refChr ne $chr)
 		{
-			for my $refChunk (keys %{ $unsortedOutputChunks->{$refChr} })
+			for my $refChunk (sort { $a <=> $b } keys %{ $unsortedOutputChunks->{$refChr} })
 			{
 				printChunk($refChr, $refChunk, $unsortedOutputChunks);
 			}
@@ -792,7 +792,7 @@ sub doSortedOutput
 
 	
 	# check if we're far enough away from existing chunks - sort and output chunks that are no longer needed
-	for my $chunkPos (keys %{ $unsortedOutputChunks->{$chr} })
+	for my $chunkPos (sort { $a <=> $b } keys %{ $unsortedOutputChunks->{$chr} })
 	{
 		if ($chunkPos < ($pos - (2 * $chunkSize)))
 		{
