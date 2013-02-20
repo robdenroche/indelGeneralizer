@@ -301,8 +301,8 @@ if ($interactiveMode == 1)
 			print $outputLine;
 		}
 	}
-	elsif ($alignMode eq "full"{
-	my $previousPos = 0;
+	elsif ($alignMode eq "full")
+	{
 		my $refPad = 3;
 		doFullOutput($chr, $pos, $type, $candidatePos, $anchorMode, $anchorPos, \%referenceHash, \%fastaHandles);#
 	}
@@ -424,9 +424,9 @@ else		# process vcf file
 						$outputPos = $sortedPositions[0];
 						$outputIndel = $candidatePos->{$outputPos};
 
-						if (($pos - $outputPos) >= $sortedChunkSize)
+						if (($pos - $outputPos) >= $sortingChunkSize)
 						{
-							warn "An indel was realigned so far left that it make have violated the sortedness of your vcf!\n";
+							warn "An indel was realigned so far left that it may have violated the sortedness of your vcf!\n";
 						}
 	
 						
