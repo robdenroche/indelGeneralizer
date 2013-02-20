@@ -45,7 +45,7 @@ Usage
 Usage is ./indelGeneralizer.pl [-i INDEL -c CHROM -p POS || -v INPUT.VCF] -f /PATH/TO/FASTA/ [options]
 
 
-Options are as follows:
+### Options are as follows:
 
 **-f /PATH/TO/FASTA/** is the path to your fasta reference, which is split into separate chromosome files.
 
@@ -58,7 +58,7 @@ Options are as follows:
 **-h** displays this usage message.
 
 
-Interactive mode options:
+### Interactive mode options:
 
 **-i INDEL** (as +ACG or -T).  Enables interactive mode and specifies the inserted (+) or deleted (-) bases.
 
@@ -69,7 +69,7 @@ Interactive mode options:
 **-m ALIGN_MODE** (as left, right, full or all).  Optional, default is left.  Specifies the output of interactive mode.
 
 
-VCF mode options:
+### VCF mode options:
 
 **-v INPUT.VCF** enables VCF mode and specifies the VCF file to generalize.
 
@@ -80,7 +80,7 @@ VCF mode options:
 
 Examples
 --------
-
+Will be added soon!
 
 Compute Resources and Sorting
 -----------------------------
