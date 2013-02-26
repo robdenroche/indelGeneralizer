@@ -80,7 +80,67 @@ Usage is ./indelGeneralizer.pl [-i INDEL -c CHROM -p POS || -v INPUT.VCF] -f /PA
 
 Examples
 --------
-Will be added soon!
+```
+# The four interactive output modes for a deletion of C at chr14:22298234.
+./indelGeneralizer.pl -i -C -c chr14 -p 22298234 -f /references/fasta/ -m left
+chr14   22298234        .       TC      T
+
+
+./indelGeneralizer.pl -i -C -c chr14 -p 22298234 -f /references/fasta/ -m right
+chr14   22298237        .       CC      C
+
+
+./indelGeneralizer.pl -i -C -c chr14 -p 22298234 -f /references/fasta/ -m all
+chr14   22298234        .       TC      T
+chr14   22298235        .       CC      C
+chr14   22298236        .       CC      C
+chr14   22298237        .       CC      C
+
+
+./indelGeneralizer.pl -i -C -c chr14 -p 22298234 -f /references/fasta/ -m full
+
+                                       |22298232
+(reference sequence)                   TCTCCCCAGC
+chr14   22298234   .   TC   T          TCT-CCCAGC   <-- (original deletion)
+chr14   22298235   .   CC   C          TCTC-CCAGC
+chr14   22298236   .   CC   C          TCTCC-CAGC
+chr14   22298237   .   CC   C          TCTCCC-AGC
+(reference sequence)                   TCTCCCCAGC
+                                        22298241|
+                                        
+                                        
+# A three base insertion of AGA into chr8:48910891.
+./indelGeneralizer.pl -i +AGA -c chr8 -p 48910891 -f /references/fasta/ -m full
+
+                                        |48910880
+(aligned consensus)                     CGTAGAAGAAGAAGAAGAGAC
+chr8   48910882   .   T   TAGA          CGT***AGAAGAAGAAGAGAC
+chr8   48910885   .   A   AAGA          CGTAGA***AGAAGAAGAGAC
+chr8   48910888   .   A   AAGA          CGTAGAAGA***AGAAGAGAC
+chr8   48910891   .   A   AAGA          CGTAGAAGAAGA***AGAGAC   <-- (original insertion)
+chr8   48910894   .   A   AAGA          CGTAGAAGAAGAAGA***GAC
+(aligned consensus)                     CGTAGAAGAAGAAGAAGAGAC
+                                                    48910897|
+
+
+# A five base deletion of ATTTA at chr17:41246043.  Note how the order of the deleted bases can change yet still result
+# in the same observed sequence.
+./indelGeneralizer.pl -i -ATTTA -c chr17 -p 41246043 -f /references/fasta/ -m full
+
+                                           |41246037
+(reference sequence)                       CGCTTTAATTTATTT
+chr17   41246039   .   CTTTAA   C          CGC-----TTTATTT
+chr17   41246040   .   TTTAAT   T          CGCT-----TTATTT
+chr17   41246041   .   TTAATT   T          CGCTT-----TATTT
+chr17   41246042   .   TAATTT   T          CGCTTT-----ATTT
+chr17   41246043   .   AATTTA   A          CGCTTTA-----TTT   <-- (original deletion)
+(reference sequence)                       CGCTTTAATTTATTT
+                                                 41246051|
+
+
+```
+
+
 
 Compute Resources and Sorting
 -----------------------------
