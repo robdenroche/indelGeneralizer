@@ -343,7 +343,7 @@ else		# process vcf file
 				}
 				else
 				{
-					doSortedOutput($chr, $pos, $line, \%unsortedOutputChunks);
+					doSortedOutput($chr, $pos, "$line\n", \%unsortedOutputChunks);
 				}
 			}
 			elsif (($ref =~ /,/) or ($var =~ /,/))
@@ -355,7 +355,7 @@ else		# process vcf file
 				}
 				else
 				{
-					doSortedOutput($chr, $pos, $line, \%unsortedOutputChunks);
+					doSortedOutput($chr, $pos, "$line\n", \%unsortedOutputChunks);
 				}
 			}
 			else
@@ -387,7 +387,7 @@ else		# process vcf file
 					}
 					else
 					{
-						doSortedOutput($chr, $pos, $line, \%unsortedOutputChunks);
+						doSortedOutput($chr, $pos, "$line\n", \%unsortedOutputChunks);
 					}
 					$noMatchCount++;
 				}
@@ -466,6 +466,21 @@ else		# process vcf file
 		}
 	}
 	close VCFFILE;
+
+	# print any leftover chunks
+	if ($doSort == 1)
+	{
+		for $chr (keys %unsortedOutputChunks)	# should only be one chr
+		{
+			for my $chunkPos (sort {$a<=>$b} keys %{$unsortedOutputChunks{$chr}})
+			{
+				printChunk($chr, $chunkPos, \%unsortedOutputChunks);
+			}
+		}
+	}
+
+
+
 	# output stats
 	if ($outputVcfStats == 1)
 	{
